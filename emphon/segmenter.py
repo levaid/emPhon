@@ -16,7 +16,7 @@ class Segmenter:
 
         for line in sentence:
             anas = json.loads(line[field_names['anas']])
-            #  we suppose that the longest morphana is the finest ,
+            #  we suppose that the longest morphana is the finest
             anas_sorted = [ana['morphana'] for ana in sorted(anas, key=lambda s: s['morphana'].count('+'), reverse=True)]
             if anas_sorted == [] or anas_sorted == ['']:  # in case it is a symbol or some other weird thing
                 new_sentence.append(line[0].lower() + ' ')

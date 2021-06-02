@@ -2,6 +2,9 @@ import re
 
 
 class Transcriber():
+    """
+    Phonetic transcriber class. Examples are commented after the rules to ease the reading of regexes.
+    """
     def __init__(self, optional_palatal_assimilation: bool = False):
         self.optional_palatal_assimilation = optional_palatal_assimilation
 
@@ -50,9 +53,6 @@ class Transcriber():
                        ('lly', 'J'), ('nny', 'Ɲ'), ('ssz', 'Ʃ'), ('tty', 'Ť'), ('zzs', 'Ž')]
         double = [('cs', 'č'), ('dzs', 'ĵ'), ('dz', 'ď'), ('gy', 'ǧ'),
                   ('ly', 'j'), ('ny', 'ɲ'), ('sz', 'ʃ'), ('ty', 'ť'), ('zs', 'ž')]
-        # # TODO it should be aggregated in one long regex
-        # for old, new in double_long + double:
-        #     sentence = sentence.replace(old, new)
 
         double_letters = dict(double + double_long)
 
@@ -105,7 +105,7 @@ class Transcriber():
         # voiced = 'bdǧgzžď'
         # voiceless = 'ptťkʃscf'
         pairs = {'p': 'b', 'b': 'p', 't': 'd', 'd': 't', 'ť': 'ǧ', 'ǧ': 'ť', 'k': 'g', 'g': 'k', 'f': 'v', 'v': 'f',
-                 'ʃ': 'z', 'z': 'ʃ', 's': 'ž', 'ž': 's', 'c': 'ď', 'ď': 'c', 'h': 'ɦ', 'č': 'ĵ', 'ĵ': 'č'}  # cs/dzs
+                 'ʃ': 'z', 'z': 'ʃ', 's': 'ž', 'ž': 's', 'c': 'ď', 'ď': 'c', 'h': 'ɦ', 'č': 'ĵ', 'ĵ': 'č'}
 
         sentence = re.sub(r'([bdǧgzžďvĵ])([|~§#]?[ptťkʃscfhč])',
                           lambda m: pairs[m.group(1)]+m.group(2), sentence)  # HACK h
