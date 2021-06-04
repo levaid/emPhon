@@ -31,15 +31,17 @@ class EmPhon:
         Use with caution. Transcribes sentences word-by-word, meaning the rules do not work over word limits.
         Its advantage is that it provides xtsv-like one word per line output.
         """
-        return [self.transcriber.process(word) for word in segmented_sentence]
+        return [self.transcriber(word) for word in segmented_sentence]
 
     def transcribe_lax(self, segmented_sentence: List[str]) -> List[str]:
         """
         Transcribes sentences by whole.
         The first word line of the sentence contains the whole phonetic form, the rest of the sentence is padded with `_`.
+        :param segmented_sentence: output of the segmenter
+        :return: the transcribed sentence
         """
 
-        transcribed_sentence = self.transcriber.process(''.join(segmented_sentence))
+        transcribed_sentence = self.transcriber(''.join(segmented_sentence))
 
         return [transcribed_sentence if i == 0 else '_' for i, _ in enumerate(segmented_sentence)]
 
@@ -72,4 +74,3 @@ class EmPhon:
          e.g. return [field_names['form'], field_names['lemma'], field_names['xpostag'], ...] )
         """
         return field_names
-

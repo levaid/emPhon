@@ -25,20 +25,24 @@ def main():
     # Init and run the module as it were in xtsv
 
     # The relevant part of config.py
-    # from emdummy import EmDummy
+    # from emphon import EmPhon
     emphon = ('emphon', 'EmPhon', 'EmPhon ', (),
-              {'source_fields': {'anas'},  # Source field names
-               'target_fields': ['phon']})  # Target field names
-    tools = [(emphon, ('dummy', 'dummy-tagger', 'emDummy'))]
+              {'source_fields': {'anas'},
+               'target_fields': ['phon'],
+               'strict_xtsv_format': False,
+               'transcriber_opts': {'ipaize': True, 'optional_palatal_assimilation': False},
+               },
+              )
+    tools = [(emphon, ('emphon', 'Phonetic transcriber', 'emPhon'))]
 
     # Run the pipeline on input and write result to the output...
-    # output_iterator.writelines(build_pipeline(input_data, used_tools, tools, presets, opts.conllu_comments))
+    output_iterator.writelines(build_pipeline(input_data, used_tools, tools, presets, opts.conllu_comments))
 
     # TODO this method is recommended when debugging the tool
     # Alternative: Run specific tool for input (still in emtsv format):
-    from xtsv import process
-    from emphon import EmPhon
-    output_iterator.writelines(process(input_data, EmPhon(*emphon[3], **emphon[4])))
+    # from xtsv import process
+    # from emphon import EmPhon
+    # output_iterator.writelines(process(input_data, EmPhon(*emphon[3], **emphon[4])))
 
     # Alternative2: Run REST API debug server
     # from xtsv import pipeline_rest_api, singleton_store_factory
