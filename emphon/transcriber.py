@@ -3,7 +3,7 @@ import json
 import os
 
 
-class Transcriber():
+class Transcriber:
     """
     Phonetic transcriber class. Examples are commented after the rules to ease the reading of regexes.
     """
@@ -48,15 +48,18 @@ class Transcriber():
         else:
             return sentence
 
-    def x_letter(self, sentence: str) -> str:
+    @staticmethod
+    def x_letter(sentence: str) -> str:
         return re.sub(r'[Xx]', 'ksz', sentence)
 
-    def _long_letters(self, sentence: str) -> str:
+    @staticmethod
+    def _long_letters(sentence: str) -> str:
         sentence = re.sub(r'([bcdfghjklmnpqrstvxzčďǧɲʃťž])\1',
                           lambda m: m.group(1).upper(), sentence)
         return sentence
 
-    def _stronger_long_letters(self, sentence: str) -> str:
+    @staticmethod
+    def _stronger_long_letters(sentence: str) -> str:
         sentence = re.sub(r'([bcdfghjklmnpqrstvxzčďǧɲʃťž])[|~§#]?\1',
                           lambda m: m.group(1).upper(), sentence)
         return sentence
@@ -159,7 +162,8 @@ class Transcriber():
 
         return self._long_letters(sentence)
 
-    def hiatus_filling(self, sentence: str) -> str:
+    @staticmethod
+    def hiatus_filling(sentence: str) -> str:
         sentence = re.sub(r'i[|~§]?([aáeéoóöőüűuú])', r'ij\g<1>', sentence)
         sentence = re.sub(r'([aáeéoóöőüűuú])[|~§]?i', r'\g<1>ji', sentence)
         return sentence
@@ -211,10 +215,6 @@ class Transcriber():
         return self._long_letters(sentence)
 
     def ipaization(self, sentence: str) -> str:
-        ipa_sentence = ''
-
         sentence = self._long_letters(re.sub(r'[|~§#]', '', sentence))
-        for letter in sentence:
-            ipa_sentence += self.ipa_key.get(letter, letter)
-
+        ipa_sentence = ''.join(self.ipa_key.get(letter, letter) for letter in sentence)
         return ipa_sentence

@@ -4,7 +4,7 @@ from emphon.transcriber import Transcriber
 
 
 class EmPhon:
-    def __init__(self, source_fields=None, target_fields=None, transcriber_opts: dict = None, strict_xtsv_format=False):
+    def __init__(self, source_fields=None, target_fields=None, transcriber_opts: dict = None, strict_xtsv_format=False, *_):
 
         if source_fields is None:
             source_fields = set()
