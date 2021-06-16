@@ -58,32 +58,25 @@ def main():
                             },
                            )
 
-    emphon_noipa_comments = ('emphon', 'EmPhon', 'emPhon phonetic transcriber without IPAization but with comment lines', (),
+    emphon_noipa_comments = ('emphon', 'EmPhon',
+                             'emPhon phonetic transcriber without IPAization but with comment lines', (),
                              {'source_fields': {'form', 'anas'},
                               'target_fields': ['phon'],
                               'include_sentence': True,
-                              'transcriber_opts': {'ipaize': False,
-                                                   'optional_palatal_assimilation': False},
-                              },
-                             )
+                              'transcriber_opts': {'ipaize': False, 'optional_palatal_assimilation': False}, },)
 
-    emphon_ipa_nocomments = ('emphon', 'EmPhon', 'emPhon phonetic transcriber with IPAization but without comment lines', (),
+    emphon_ipa_nocomments = ('emphon', 'EmPhon',
+                             'emPhon phonetic transcriber with IPAization but without comment lines', (),
                              {'source_fields': {'form', 'anas'},
                               'target_fields': ['phon'],
                               'include_sentence': False,
-                              'transcriber_opts': {'ipaize': True,
-                                                   'optional_palatal_assimilation': False},
-                              },
-                             )
+                              'transcriber_opts': {'ipaize': True, 'optional_palatal_assimilation': False}, },)
 
-    emphon_noipa_nocomments = ('emphon', 'EmPhon', 'emPhon phonetic transcriber without IPAization and comment lines', (),
-                               {'source_fields': {'form', 'anas'},
-                                'target_fields': ['phon'],
-                                'include_sentence': False,
-                                'transcriber_opts': {'ipaize': False,
-                                                     'optional_palatal_assimilation': False},
-                                },
-                               )
+    emphon_noipa_nocomments = (
+        'emphon', 'EmPhon', 'emPhon phonetic transcriber without IPAization and comment lines', (),
+        {'source_fields': {'form', 'anas'},
+         'target_fields': ['phon'],
+         'include_sentence': False, 'transcriber_opts': {'ipaize': False, 'optional_palatal_assimilation': False}, },)
 
     tools = [(emphon, ('emphon', 'emPhon phonetic transcriber ', 'emPhon'))]
 
