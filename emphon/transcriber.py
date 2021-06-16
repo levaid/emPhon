@@ -1,6 +1,9 @@
 import re
 import json
 import os
+from typing import List
+
+MAIN_POS = {'/V', '/N', '/Adj', '/Adv'}
 
 
 class Transcriber:
@@ -18,6 +21,26 @@ class Transcriber:
         if self.ipaize:
             with open(os.path.join(os.path.dirname(__file__), 'ipa_key.json')) as infile:
                 self.ipa_key = json.load(infile)
+
+        self.double_letter_vocab = {
+            'ccs': 'Č',
+            'ddzs': 'Ĵ',
+            'ddz': 'Ď',
+            'ggy': 'Ǧ',
+            'lly': 'J',
+            'nny': 'Ɲ',
+            'ssz': 'Ʃ',
+            'tty': 'Ť',
+            'zzs': 'Ž',
+            'cs': 'č',
+            'dzs': 'ĵ',
+            'dz': 'ď',
+            'gy': 'ǧ',
+            'ly': 'j',
+            'ny': 'ɲ',
+            'sz': 'ʃ',
+            'ty': 'ť',
+            'zs': 'ž'}
 
     def __call__(self, sentence: str, passes=2) -> str:
         """
@@ -65,15 +88,9 @@ class Transcriber:
         return sentence
 
     def double_letters(self, sentence: str) -> str:
-        double_long = [('ccs', 'Č'), ('ddzs', 'Ĵ'), ('ddz', 'Ď'), ('ggy', 'Ǧ'),
-                       ('lly', 'J'), ('nny', 'Ɲ'), ('ssz', 'Ʃ'), ('tty', 'Ť'), ('zzs', 'Ž')]
-        double = [('cs', 'č'), ('dzs', 'ĵ'), ('dz', 'ď'), ('gy', 'ǧ'),
-                  ('ly', 'j'), ('ny', 'ɲ'), ('sz', 'ʃ'), ('ty', 'ť'), ('zs', 'ž')]
-
-        double_letters = dict(double + double_long)
 
         sentence = re.sub(r'(ccs|ddzs|ddz|ggy|lly|nny|ssz|tty|zzs|cs|dzs|dz|gy|ly|ny|sz|ty|zs)',
-                          lambda m: double_letters[m.group(1)], sentence)
+                          lambda m: self.double_letter_vocab[m.group(1)], sentence)
 
         sentence = self._long_letters(sentence)
 
@@ -109,7 +126,6 @@ class Transcriber:
 
     def sibilant_assimilation(self, sentence: str) -> str:
         sentence = re.sub(r'(t)([|~§#]?ʃ)', r'C', sentence)  # hatszög
-        # sentence = re.sub(r'(d)([|~§]?z)',r'R',sentence) is 'dz' long or not in every situation?
         sentence = re.sub(r'(t)([|~§#]?s)', r'Č', sentence)  # hátság
         sentence = re.sub(r'(t)([|~§# ]?c)', r'C', sentence)  # hét cica
         sentence = re.sub(r'(t)([|~§# ]?č)', r'Č', sentence)  # hat csap
@@ -124,10 +140,10 @@ class Transcriber:
                  'ʃ': 'z', 'z': 'ʃ', 's': 'ž', 'ž': 's', 'c': 'ď', 'ď': 'c', 'h': 'ɦ', 'č': 'ĵ', 'ĵ': 'č'}
 
         sentence = re.sub(r'([bdǧgzžďvĵ])([|~§#]?[ptťkʃscfhč])',
-                          lambda m: pairs[m.group(1)]+m.group(2), sentence)  # HACK h
+                          lambda m: pairs[m.group(1)]+m.group(2), sentence)  # útpadka -> útpatka
 
         sentence = re.sub(r'([ptťkʃscfhč])([|~§#]?[bdǧgzžďĵ])',
-                          lambda m: pairs[m.group(1)]+m.group(2), sentence)  # HACK h
+                          lambda m: pairs[m.group(1)]+m.group(2), sentence)  # habfürdő -> hapfürdő
 
         return self._long_letters(sentence)
 
@@ -185,8 +201,8 @@ class Transcriber:
                           lambda m: m.group(1).lower()+m.group(2)+m.group(3), sentence)  # Ludd tábornok
 
         # short#1 short#2 short#2
-        sentence = re.sub(
-            r'([bcdfghjklmnpqrstvwxzčďǧɲʃťž]([bcdfghjklmnpqrstvwxzčďǧɲʃťž]))[|#§~ ]?\2', r'\g<1>', sentence)  # Ford dísztárcsa
+        sentence = re.sub(r'([bcdfghjklmnpqrstvwxzčďǧɲʃťž]([bcdfghjklmnpqrstvwxzčďǧɲʃťž]))[|#§~ ]?\2',
+                          r'\g<1>', sentence)  # Ford dísztárcsa
 
         # short long
         sentence = re.sub(r'([bcdfghjklmnpqrstvwxzčďǧɲʃťž])[|~#§]?([BCDFGHJKLMNPQRSTVWXZČĎǦƝƩŤŽ])',
@@ -218,3 +234,62 @@ class Transcriber:
         sentence = self._long_letters(re.sub(r'[|~§#]', '', sentence))
         ipa_sentence = ''.join(self.ipa_key.get(letter, letter) for letter in sentence)
         return ipa_sentence
+
+    @staticmethod
+    def segment(sentence: List[List[str]], field_names: dict) -> List[str]:
+        """
+        Segment words based on morphological analysis. It uses the field `anas`, which contains the output of emMorph
+        with the possible segmentation. Selects the longest analysis (which is supposedly the finest), then adds
+        delimiters based on the morph boundaries. In case of no analysis, it assumes that the token is a single morph.
+        :param sentence: xtsv sentence with `form` and `morph` fields
+        :param field_names: field names
+        :return: list of segmented words
+        """
+        new_sentence = []
+
+        for line in sentence:
+            anas = json.loads(line[field_names['anas']])
+            #  we suppose that the longest morphana is the finest
+            anas_sorted = [ana['morphana']
+                           for ana in sorted(anas, key=lambda s: s['morphana'].count('+'), reverse=True)]
+            #  in case it is a symbol or some other weird thing the morphana is empty
+            if anas_sorted == [] or anas_sorted == ['']:
+                new_sentence.append(line[field_names['form']].lower() + ' ')
+            else:
+                #  the regex finds tag-surface realization pairs
+                tags, morphs, _ = zip(*re.findall(r"\[(.*?)\]=(.*?)(\+|$)", anas_sorted[0]))
+                morphs = [x.lower() for x in morphs]
+                #  in some special cases like adverbs, punctiations there is only one morph and we have to consider it #
+                #  a special case
+                if len(morphs) == 1:
+                    new_sentence.append(morphs[0] + ' ')
+                else:
+                    word = []
+                    is_end_of_main = False
+                    #  we iterate over the morphs and make 4 distinct categories:
+                    #  before root, between roots, after root, between suffixes
+                    #  we mark these by | # § ~
+                    #  and for the empty morphs in the Hungarian at the end of words (Nom), we discard it
+                    for i, morph in enumerate(morphs[:-1]):
+                        word.append(morph)
+                        if morphs[i+1] == '':
+                            continue  # to avoid empty | in the end
+                        curr_is_lemma, next_is_lemma = tags[i] in MAIN_POS, tags[i+1] in MAIN_POS
+                        if is_end_of_main:
+                            word.append('|')
+                        elif curr_is_lemma and next_is_lemma:
+                            word.append('#')
+                        elif not curr_is_lemma and next_is_lemma:
+                            word.append('§')
+                        elif curr_is_lemma and not next_is_lemma:
+                            word.append('~')
+                            is_end_of_main = True
+                        elif not curr_is_lemma and not next_is_lemma:
+                            word.append('|')
+                    else:
+                        if morphs[-1] != '':  # empty morphemes at the end (nominative suffix) have to be discarded
+                            word.append(morphs[-1])
+
+                    new_sentence.append(''.join(word + [' ']))
+
+        return new_sentence

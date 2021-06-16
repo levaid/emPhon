@@ -11,7 +11,8 @@ Phonetic transcriber for the xtsv framework.
 - `pip install dist/*.whl`
 
 ## Usage
-- Same as any other module using the xtsv framework - either as part of the emtsv framework or as separate module
+- Same as any other module using the xtsv framework - either as part of the emtsv framework or as separate module.
+- The module needs `form` and `anas` fields and produces the `phon` field and by default, it prepends the phonetic form of the entire sentence
 
 ### Configurations
 
@@ -19,13 +20,30 @@ The module takes command line arguments. By default, the module produces IPA out
 
 Command line arguments:
 
-- `--no-ipaize` turns off IPA-ization, it produces the inner representation which uses exactly one unicode character for each phoneme
-- `--lax_xtsv` groups the surface form of the entire sentence into the first token, thus it can take into account the rules on word boundaries, while strict mode cannot.
-- `--opt_palatal_assim` turns on optional palatal assimilation for the t/d+ny clusters, e.g. lapátnyél -> lapátynyél
+- `--ipaize` or `--no-ipaize` toggles IPA-ization, it produces the inner representation which uses exactly one unicode character for each phoneme. Default: on.
+- `--opt-palatal-assim` or `--no-opt-palatal-assim` toggles optional palatal assimilation for the t/d+ny clusters, e.g. lapátnyél -> lapátynyél. Default: off.
+- `--include-sentence` or `--no-include-sentence` toggles the inclusion of the entire phonetic form as a comment before each sentence. Default: on.
 
+### Example output
+
+```
+# phon = ɒ mɛɡoldaːʒbɒ ɒkaːr moʃt meːɡ nɛm iʃ ɛŋɡɛdeːjɛzɛtː oltaːʃok iʃ bɛjaːt͡shɒtnɒk .
+A       ɒ
+megoldásba      mɛɡoldaːʒbɒ
+akár    ɒkaːr
+most    moʃt
+még     meːɡ
+nem     nɛm
+is      iʃ
+engedélyezett   ɛŋɡɛdeːjɛzɛtː
+oltások oltaːʃok
+is      iʃ
+bejátszhatnak   bɛjaːt͡shɒtnɒk
+.       .
+```
 ## Paper
 
-Can be downloaded from [here](https://hlt.bme.hu/media/pdf/emphon_levai.pdf). Please cite the following paper when you use this module:
+Can be downloaded from [here](https://hlt.bme.hu/media/pdf/emphon_levai.pdf). Please cite the following paper using this module:
 
 ```bibtex
 @InProceedings{   Kulcsar:2021,
@@ -42,7 +60,8 @@ Can be downloaded from [here](https://hlt.bme.hu/media/pdf/emphon_levai.pdf). Pl
 If different IPA (or transcription) is needed, the `emphon/ipa_key.json` file contains the key, which is human-modifiable.
 
 ## License
-This xtsv wrapper is licensed under the LGPL 3.0 license. The model and the included .pt files have their own licenses
+
+This module is licensed under the LGPL 3.0 license.
 
 
 

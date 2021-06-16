@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8, vim: expandtab:ts=4 -*-
 
-from xtsv import build_pipeline, parser_skeleton, jnius_config
+from xtsv import build_pipeline, parser_skeleton, jnius_config, add_bool_arg
 
 
 def main():
 
     argparser = parser_skeleton(description='EmPhon - a phonetic transcriber module for xtsv')
-    argparser.add_argument(
-        '--no_ipaize', dest='ipaize', action='store_true',
-        help='Whether the output should be IPA or the inner representation, which marks one phoneme with exactly one letter.')
-    argparser.add_argument(
-        '--opt_palatal_assim', dest='optional_palatal_assimilation', action='store_true',
-        help='Whether optional palatal assimilation should happen with t/d+ny, e.g. lapátnyél -> lapátynyél')
-    argparser.add_argument(
-        '--lax_xtsv', dest='lax_xtsv', action='store_false',
-        help='Whether the surface form of the sentence should be aggregated in the first token. If lax, rules work over word boundaries, else they do not.')
 
-    argparser.set_defaults(ipaize=True, optional_palatal_assimilation=False, lax_xtsv=False)
+    add_bool_arg(argparser, 'ipaize',
+                 ('Whether the output should be IPA or the inner representation, '
+                  'which marks one phoneme with exactly one letter.'),
+                 default=True, has_negative_variant=True)
+
+    add_bool_arg(
+        argparser, 'opt-palatal-assim',
+        ('Whether optional palatal assimilation should happen with t/d+ny, e.g. lapátnyél -> lapátynyél'),
+        default=False, has_negative_variant=True)
+
+    add_bool_arg(
+        argparser, 'include-sentence',
+        'If on, there is a line of comment before the sentence that contains the entire surface form of the sentence.',
+        default=True, has_negative_variant=True)
 
     opts = argparser.parse_args()
 
@@ -38,7 +42,8 @@ def main():
 
     # The relevant part of config.py
     # from emphon import EmPhon
-    # Produces IPA output with the surface form of the entire sentence in the first token. This can take into account the rules over the word boundaries.
+    # Produces IPA output with the surface form of the entire sentence in the first token.
+    # This can take into account the rules over the word boundaries.
     # emphon_ipa_lax = ('emphon', 'EmPhon', 'EmPhon with ipaization and lax format', (),
     #                   {'source_fields': {'form', 'anas'},
     #                    'target_fields': ['phon'],
@@ -56,7 +61,8 @@ def main():
     #                       },
     #                      )
 
-    # Produces inner representation (one phoneme = one character) output with the surface form of the entire sentence in the first token.
+    # Produces inner representation (one phoneme = one character) output
+    # with the surface form of the entire sentence in the first token.
     # This can take into account the rules over the word boundaries.
     # emphon_noipa_lax = ('emphon', 'EmPhon', 'EmPhon without ipaization and lax format', (),
     #                     {'source_fields': {'form', 'anas'},
@@ -66,7 +72,8 @@ def main():
     #                      },
     #                     )
 
-    # Produces inner representation (one phoneme = one character) output with one surface form per line. Does not work over word boundaries.
+    # Produces inner representation (one phoneme = one character) output with one surface form per line.
+    # Does not work over word boundaries.
     # emphon_noipa_strict = ('emphon', 'EmPhon', 'EmPhon without ipaization and lax format', (),
     #                     {'source_fields': {'form', 'anas'},
     #                      'target_fields': ['phon'],
@@ -78,8 +85,9 @@ def main():
     emphon = ('emphon', 'EmPhon', 'EmPhon without ipaization and lax format', (),
                         {'source_fields': {'form', 'anas'},
                          'target_fields': ['phon'],
-                         'strict_xtsv_format': not opts.lax_xtsv,
-                         'transcriber_opts': {'ipaize': opts.ipaize, 'optional_palatal_assimilation': opts.optional_palatal_assimilation},
+                         'include_sentence': opts.include_sentence,
+                         'transcriber_opts': {'ipaize': opts.ipaize,
+                                              'optional_palatal_assimilation': opts.opt_palatal_assim},
                          },
               )
 
