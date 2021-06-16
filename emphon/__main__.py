@@ -9,8 +9,8 @@ def main():
     argparser = parser_skeleton(description='EmPhon - a phonetic transcriber module for xtsv')
 
     add_bool_arg(argparser, 'ipaize',
-                 ('Whether the output should be IPA or the inner representation, '
-                  'which marks one phoneme with exactly one letter.'),
+                 ('Whether the output should be IPA or the emPhon inner representation, '
+                  'which marks one phone with exactly one letter.'),
                  default=True, has_negative_variant=True)
 
     add_bool_arg(
@@ -40,49 +40,7 @@ def main():
 
     # Init and run the module as it were in xtsv
 
-    # The relevant part of config.py
-    # from emphon import EmPhon
-    # Produces IPA output with the surface form of the entire sentence in the first token.
-    # This can take into account the rules over the word boundaries.
-    # emphon_ipa_lax = ('emphon', 'EmPhon', 'EmPhon with ipaization and lax format', (),
-    #                   {'source_fields': {'form', 'anas'},
-    #                    'target_fields': ['phon'],
-    #                    'strict_xtsv_format': False,
-    #                    'transcriber_opts': {'ipaize': True, 'optional_palatal_assimilation': False},
-    #                    },
-    #                   )
-
-    # Produces IPA output with one surface form per line. Does not work over word boundaries.
-    # emphon_ipa_strict = ('emphon', 'EmPhon', 'EmPhon with ipaization and strict format', (),
-    #                      {'source_fields': {'form', 'anas'},
-    #                       'target_fields': ['phon'],
-    #                       'strict_xtsv_format': True,
-    #                       'transcriber_opts': {'ipaize': True, 'optional_palatal_assimilation': False},
-    #                       },
-    #                      )
-
-    # Produces inner representation (one phoneme = one character) output
-    # with the surface form of the entire sentence in the first token.
-    # This can take into account the rules over the word boundaries.
-    # emphon_noipa_lax = ('emphon', 'EmPhon', 'EmPhon without ipaization and lax format', (),
-    #                     {'source_fields': {'form', 'anas'},
-    #                      'target_fields': ['phon'],
-    #                      'strict_xtsv_format': False,
-    #                      'transcriber_opts': {'ipaize': False, 'optional_palatal_assimilation': False},
-    #                      },
-    #                     )
-
-    # Produces inner representation (one phoneme = one character) output with one surface form per line.
-    # Does not work over word boundaries.
-    # emphon_noipa_strict = ('emphon', 'EmPhon', 'EmPhon without ipaization and lax format', (),
-    #                     {'source_fields': {'form', 'anas'},
-    #                      'target_fields': ['phon'],
-    #                      'strict_xtsv_format': True,
-    #                      'transcriber_opts': {'ipaize': False, 'optional_palatal_assimilation': False},
-    #                      },
-    #                     )
-
-    emphon = ('emphon', 'EmPhon', 'EmPhon without ipaization and lax format', (),
+    emphon = ('emphon', 'EmPhon', 'EmPhon', (),
                         {'source_fields': {'form', 'anas'},
                          'target_fields': ['phon'],
                          'include_sentence': opts.include_sentence,
@@ -91,7 +49,49 @@ def main():
                          },
               )
 
-    tools = [(emphon, ('emphon', 'Phonetic transcriber ', 'emPhon'))]
+    emphon_ipa_comments = ('emphon', 'EmPhon', 'emPhon phonetic transcriber with IPAization and with comment lines', (),
+                           {'source_fields': {'form', 'anas'},
+                            'target_fields': ['phon'],
+                            'include_sentence': True,
+                            'transcriber_opts': {'ipaize': True,
+                                                 'optional_palatal_assimilation': False},
+                            },
+                           )
+
+    emphon_noipa_comments = ('emphon', 'EmPhon', 'emPhon phonetic transcriber without IPAization but with comment lines', (),
+                             {'source_fields': {'form', 'anas'},
+                              'target_fields': ['phon'],
+                              'include_sentence': True,
+                              'transcriber_opts': {'ipaize': False,
+                                                   'optional_palatal_assimilation': False},
+                              },
+                             )
+
+    emphon_ipa_nocomments = ('emphon', 'EmPhon', 'emPhon phonetic transcriber with IPAization but without comment lines', (),
+                             {'source_fields': {'form', 'anas'},
+                              'target_fields': ['phon'],
+                              'include_sentence': False,
+                              'transcriber_opts': {'ipaize': True,
+                                                   'optional_palatal_assimilation': False},
+                              },
+                             )
+
+    emphon_noipa_nocomments = ('emphon', 'EmPhon', 'emPhon phonetic transcriber without IPAization and comment lines', (),
+                               {'source_fields': {'form', 'anas'},
+                                'target_fields': ['phon'],
+                                'include_sentence': False,
+                                'transcriber_opts': {'ipaize': False,
+                                                     'optional_palatal_assimilation': False},
+                                },
+                               )
+
+    tools = [(emphon, ('emphon', 'emPhon phonetic transcriber ', 'emPhon'))]
+
+    available_tools = [
+        (emphon_ipa_comments, ('emphon-ipa-comments', 'emPhon-ipa-comments', 'emPhon-IPA-comments')),
+        (emphon_ipa_nocomments, ('emphon-ipa-nocomments', 'emPhon-ipa-nocomments', 'emPhon-IPA-nocomments')),
+        (emphon_noipa_comments, ('emphon-noipa-comments', 'emPhon-noipa-comments', 'emPhon-noIPA-comments')),
+        (emphon_noipa_nocomments, ('emphon-noipa-nocomments', 'emPhon-noipa-nocomments', 'emPhon-noIPA-nocomments'))]
 
     # Run the pipeline on input and write result to the output...
     output_iterator.writelines(build_pipeline(input_data, used_tools, tools, presets, opts.conllu_comments))
